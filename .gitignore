@@ -1,0 +1,29 @@
+# ─── Godot 4 ───────────────────────────────────────────────────────────────
+# Editor-managed import/cache data. Regenerated on open; never commit.
+.godot/
+# Mono/.NET glue cache (older Godot layout)
+.mono/
+# Exported builds
+/build/
+/dist/
+*.translation
+
+# ─── .NET / C# ─────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+
+# ─── Rust kernel (future /kernel/) ─────────────────────────────────────────
+target/
+**/*.rs.bk
+*.pdb
+
+# ─── OS / editor cruft ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
