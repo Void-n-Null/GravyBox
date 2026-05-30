@@ -21,6 +21,11 @@ target/
 **/*.rs.bk
 *.pdb
 
+# ─── Local-only operating contract (never published) ──────────────────────
+# The Lead/Agent contract. Intentionally untracked; see its "About this file"
+# section. Present on disk at the repo root even though git ignores it.
+AGENTS.md
+
 # ─── OS / editor cruft ─────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
