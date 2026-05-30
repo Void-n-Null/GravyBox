@@ -16,6 +16,63 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <!-- LibraryImport's source-generated marshalling needs unsafe. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <!--
+    Native kernel (Rust) build + staging.
+
+    Core owns the FFI binding, so it also owns producing the native library and
+    laying it out in the .NET RID convention: runtimes/{rid}/native/<lib>. The
+    artifact is copied to this project's output and flows transitively to any
+    consumer (e.g. GravyBox.Editor / the Godot game) via the project reference,
+    so KernelNativeResolver finds it under AppContext.BaseDirectory at runtime.
+
+    Scope today: the HOST platform only (linux-x64 here). Windows cross-build and
+    macOS/ARM via a CI matrix are tracked as separate work; the resolver + layout
+    already accommodate every RID, so other platforms slot in without code change.
+  -->
+  <PropertyGroup>
+    <KernelDir>$(MSBuildProjectDirectory)/../kernel</KernelDir>
+    <KernelManifest>$(KernelDir)/Cargo.toml</KernelManifest>
+    <KernelReleaseDir>$(KernelDir)/target/release</KernelReleaseDir>
+    <!-- Host RID as {os}-{arch}, computed the SAME way as
+         KernelNativeResolver.HostRid() so the staging folder and the runtime
+         lookup are consistent by construction. (Deliberately NOT the SDK's
+         portable RID, which can carry a libc qualifier like linux-musl-x64 that
+         the resolver does not produce.) musl support, if ever needed, is a
+         coordinated change on both sides. -->
+    <KernelOs Condition="$([MSBuild]::IsOSPlatform('Windows'))">win</KernelOs>
+    <KernelOs Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx</KernelOs>
+    <KernelOs Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux</KernelOs>
+    <KernelArch>$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)</KernelArch>
+    <KernelHostRid>$(KernelOs)-$(KernelArch.ToLowerInvariant())</KernelHostRid>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <KernelNativeFile>gravybox_kernel.dll</KernelNativeFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <KernelNativeFile>libgravybox_kernel.dylib</KernelNativeFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <KernelNativeFile>libgravybox_kernel.so</KernelNativeFile>
+  </PropertyGroup>
+
+  <Target Name="BuildRustKernel" BeforeTargets="PrepareForBuild">
+    <Message Importance="high"
+             Text="Building Rust kernel ($(KernelHostRid)): cargo build --release -> $(KernelNativeFile)" />
+    <Exec Command="cargo build --release --manifest-path &quot;$(KernelManifest)&quot;"
+          WorkingDirectory="$(KernelDir)" />
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(KernelReleaseDir)/$(KernelNativeFile)">
+      <Link>runtimes/$(KernelHostRid)/native/$(KernelNativeFile)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
 
 </Project>

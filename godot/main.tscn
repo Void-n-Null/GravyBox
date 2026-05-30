@@ -1,3 +1,6 @@
-[gd_scene format=3 uid="uid://bxydsb3ub7npf"]
+[gd_scene load_steps=2 format=3 uid="uid://bxydsb3ub7npf"]
 
-[node name="Node3D" type="Node3D" unique_id=1431629511]
+[ext_resource type="Script" uid="uid://d28xre1mashw6" path="res://GravyBoxRuntime.cs" id="1_gbrt"]
+
+[node name="GravyBoxRuntime" type="Node"]
+script = ExtResource("1_gbrt")

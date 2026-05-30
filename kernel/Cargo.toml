@@ -1,0 +1,16 @@
+[package]
+name = "gravybox_kernel"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "GravyBox native math kernel (CSG bake / geometry). C ABI, consumed by C# via P/Invoke."
+
+[lib]
+# cdylib => a C-ABI shared library: libgravybox_kernel.so / gravybox_kernel.dll /
+# libgravybox_kernel.dylib. This is the only artifact the C# side links against.
+crate-type = ["cdylib"]
+
+[profile.release]
+# Geometry kernel: favor speed. lto keeps the FFI surface small and fast.
+lto = true
+codegen-units = 1
