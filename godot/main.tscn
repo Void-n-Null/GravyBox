@@ -1,6 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://bxydsb3ub7npf"]
+[gd_scene load_steps=4 format=3 uid="uid://bxydsb3ub7npf"]
 
-[ext_resource type="Script" uid="uid://d28xre1mashw6" path="res://GravyBoxRuntime.cs" id="1_gbrt"]
+[ext_resource type="Script" uid="uid://dwu6ssl61d4xy" path="res://Editor/FlyCamera.cs" id="1_cam"]
+[ext_resource type="Script" uid="uid://da7x51ur28li2" path="res://Editor/InfiniteGrid.cs" id="2_grid"]
 
-[node name="GravyBoxRuntime" type="Node"]
-script = ExtResource("1_gbrt")
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.055, 0.058, 0.065, 1)
+
+[node name="Viewport3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="FlyCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 9, 12)
+near = 0.05
+far = 100000.0
+script = ExtResource("1_cam")
+
+[node name="InfiniteGrid" type="MeshInstance3D" parent="."]
+script = ExtResource("2_grid")
