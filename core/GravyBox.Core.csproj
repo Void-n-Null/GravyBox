@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    GravyBox.Core — the engine-agnostic domain library.
+
+    This project MUST NOT reference Godot (GodotSharp) or any engine. It is the
+    home for the brush/scene model, the unit system, CSG orchestration, and I/O —
+    pure C# that could, in principle, be driven by any front-end. The absence of a
+    Godot reference is load-bearing: it is what makes "engine-agnostic" a compiler-
+    enforced invariant rather than a convention.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GravyBox.Core</RootNamespace>
+    <AssemblyName>GravyBox.Core</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project>

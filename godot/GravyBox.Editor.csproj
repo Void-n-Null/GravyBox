@@ -1,0 +1,22 @@
+<Project Sdk="Godot.NET.Sdk/4.6.2">
+
+  <!--
+    GravyBox.Editor — the Godot (.NET) game/editor assembly.
+
+    This is the engine-coupled front-end. It references GravyBox.Core for all
+    domain logic; Godot types live here and never cross into Core. The SDK version
+    is pinned to the Godot 4.6.2 line (see AGENTS.md tech-stack canon).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GravyBox.Editor</RootNamespace>
+    <AssemblyName>GravyBox.Editor</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../core/GravyBox.Core.csproj" />
+  </ItemGroup>
+
+</Project>
