@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+#
+# CodeRabbit configuration for GravyBox
+# -------------------------------------
+# Workflow: CLI-FIRST. Reviews are run locally on the working tree with `cr`
+# (or `cr --type uncommitted`) BEFORE committing. Automatic GitHub PR reviews
+# are disabled below so CodeRabbit stays silent on the remote.
+#
+# To also get reviews on GitHub PRs (free on this public repo), set
+# reviews.auto_review.enabled back to true.
+#
+# NOTE: the CodeRabbit GitHub App must be installed on the public repo for the
+# CLI to match it and serve full OSS/Pro+ quality reviews instead of basic
+# static analysis. Installing the app is the quality unlock; it does NOT force
+# PR reviews while auto_review is disabled.
+
+language: en-US
+
+reviews:
+  # 'chill' = fewer nitpicks, higher signal-to-noise. Best for solo pre-commit use.
+  profile: chill
+
+  # CLI-only: do not auto-comment on GitHub pull requests.
+  auto_review:
+    enabled: false
+
+  # PR-walkthrough fluff (only renders if PR reviews are ever re-enabled).
+  poem: false
+  in_progress_fortune: false
+
+  # Don't spend review cycles on generated/binary Godot or .NET build artifacts.
+  path_filters:
+    - "!**/*.import"
+    - "!godot/.godot/**"
+    - "!**/bin/**"
+    - "!**/obj/**"
+    - "!**/*.tres"
+    - "!**/*.res"
+
+  path_instructions:
+    - path: "**/*.cs"
+      instructions: >-
+        Godot 4.6 C# (.NET). Flag misuse of the Godot node lifecycle
+        (_Ready / _Process vs constructors), nodes accessed before they enter
+        the scene tree, and signals/Callables connected without disconnection
+        (leaks). Watch value-vs-reference confusion between Godot value types
+        (Vector3, Transform3D, Aabb) and managed reference types. Treat any
+        unit/dimension conversion (unit<->cm, unit<->inch) as high-risk and
+        verify numeric precision and rounding direction.
+
+    - path: "**/*.rs"
+      instructions: >-
+        Native geometry kernel. Scrutinize CSG / manifold solidification math
+        for precision loss, NaN/inf propagation, and degenerate or non-manifold
+        geometry. Every `unsafe`, `#[no_mangle]`, or `extern "C"` item must be
+        checked for undefined behavior, pointer validity, and correct ownership
+        and lifetime of memory that crosses the FFI boundary.
+
+    - path: "**/*.{cs,rs}"
+      instructions: >-
+        GravyBox crosses a C# <-> Rust P/Invoke boundary. For any change that
+        touches that boundary, verify both sides agree on struct layout, field
+        order/packing, calling convention, and which side owns and frees
+        allocated memory. Layout or ownership mismatches here are the project's
+        highest-risk bug class and must be flagged even when each side looks
+        correct in isolation.
+
+tools:
+  # Rust native kernel.
+  clippy:
+    enabled: true
+  # Keep secret scanning on even for a CLI-first flow.
+  gitleaks:
+    enabled: true
