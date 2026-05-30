@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+#
+# headless — run the GravyBox project headless for a fixed duration and capture
+# its log, for verifying runtime behavior (does log line X appear? does it boot
+# without erroring?).
+#
+# Usage:
+#   ./headless --5s                  run for 5 seconds, stream + save the log
+#   ./headless --20m                 run for 20 minutes
+#   ./headless --5s "Brush baked"    run 5s, then report whether the pattern
+#                                    appeared in the captured log (sets exit
+#                                    status accordingly: 0 = found, 1 = not)
+#
+# Duration is a timeout(1) spec: <number><unit>, unit in s/m/h/d (e.g. 90s, 20m).
+#
+# Notes:
+#   - Runs the GAME (main scene), not the editor.
+#   - --headless => no GPU/window. Reliable for logic + log/stdout checks
+#     (GD.Print, model/CSG/IO output). NOT faithful for rendering/input/viewport
+#     behavior — use a real display (e.g. xvfb-run) or run interactively for that.
+#   - timeout exit code 124 means "duration elapsed" — the normal, healthy case
+#     for a long-running game. We treat it as success. Any other non-zero exit is
+#     the engine itself quitting/crashing early and is surfaced as a failure.
+#   - Override the engine binary with GODOT=... (defaults to godot-mono).
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_dir="$here/godot"
+godot_bin="${GODOT:-godot-mono}"
+log_file="${HEADLESS_LOG:-/tmp/gravybox-headless.log}"
+
+die() { printf 'headless: %s\n' "$1" >&2; exit 2; }
+
+[[ $# -ge 1 ]] || die "missing duration (e.g. ./headless --5s). See header for usage."
+
+raw="$1"; shift
+duration="${raw#--}"           # strip a leading --, so --5s and 5s both work
+[[ "$duration" =~ ^[0-9]+[smhd]$ ]] || die "bad duration '$raw' (want <number><s|m|h|d>, e.g. --5s, --20m)."
+
+pattern="${1:-}"
+
+command -v "$godot_bin" >/dev/null 2>&1 || die "engine binary '$godot_bin' not found (set GODOT=...)."
+[[ -f "$project_dir/project.godot" ]] || die "no project.godot under $project_dir."
+
+printf 'headless: running %s for %s (log -> %s)\n' "$godot_bin" "$duration" "$log_file" >&2
+
+set +e
+timeout --signal=SIGINT "$duration" "$godot_bin" --headless --path "$project_dir" \
+  > >(tee "$log_file") 2>&1
+rc=$?
+set -e
+
+if [[ $rc -ne 0 && $rc -ne 124 ]]; then
+  die "engine exited early with status $rc (see $log_file) — likely a crash or self-quit."
+fi
+
+if [[ -n "$pattern" ]]; then
+  if grep -qF -- "$pattern" "$log_file"; then
+    printf 'headless: PATTERN FOUND: %s\n' "$pattern" >&2
+    exit 0
+  else
+    printf 'headless: pattern NOT found: %s\n' "$pattern" >&2
+    exit 1
+  fi
+fi
